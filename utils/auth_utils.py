@@ -11,6 +11,9 @@ HOST = "fgcz-bfabric.uzh.ch"
 
 def token_to_data(token): 
 
+    if not token:
+        return None
+
     validation_url = VALIDATION_URL + token
     res = requests.get(validation_url, headers={"Host": HOST})
     
@@ -61,6 +64,9 @@ def entity_data(token_data):
         "Container": "container",
         "Plate": "plate"
     }
+
+    if not token_data:
+        return None
 
     wrapper = token_data.get('bfabric_wrapper', None)
     entity_class = token_data.get('entityClass_data', None)

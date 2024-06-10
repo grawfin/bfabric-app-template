@@ -143,6 +143,19 @@ def update_auth_div(slider_val, dropdown_val, input_val, n_clicks, token):
     token_data = auth_utils.token_to_data(token)
     entity_data = auth_utils.entity_data(token_data)
 
+    if not entity_data:
+        entity_details = []
+
+    else:
+        entity_details = [
+            html.H1("Entity Data:  "),
+            html.P(f"Entity Class: {token_data['entityClass_data']}"),
+            html.P(f"Entity ID: {token_data['entity_id_data']}"),
+            html.P(f"Created By: {entity_data.createdby}"),
+            html.P(f"Created: {entity_data.created}"),
+            html.P(f"Modified: {entity_data.modified}"),
+        ]
+
     output = dbc.Row(
         [
             dbc.Col(
@@ -155,17 +168,7 @@ def update_auth_div(slider_val, dropdown_val, input_val, n_clicks, token):
                 ]
             ),
             dbc.Col(
-                [
-                    html.H1("Entity Data:  "),
-                    html.P(f"Entity Class: {token_data['entityClass_data']}"),
-                    html.P(f"Entity ID: {token_data['entity_id_data']}"),
-                    html.P(f"Created By: {entity_data.createdby}"),
-                    html.P(f"Created: {entity_data.created}"),
-                    html.P(f"Modified: {entity_data.modified}"),
-
-
-                ]
-            
+                entity_details
             )
         ]
     )
