@@ -1,6 +1,5 @@
-import dash_html_components as html
 import dash_bootstrap_components as dbc
-import dash_core_components as dcc
+from dash import html, dcc
 
 default_sidebar = [
     html.P(id="sidebar_text", children="Select a Value"),
@@ -15,6 +14,11 @@ default_sidebar = [
 
 no_auth = [
     html.P("You are not currently logged into an active session. Please log into bfabric to continue:"),
+    html.A('Login to Bfabric', href='https://fgcz-bfabric.uzh.ch/bfabric/')
+]
+
+expired = [
+    html.P("Your session has expired. Please log into bfabric to continue:"),
     html.A('Login to Bfabric', href='https://fgcz-bfabric.uzh.ch/bfabric/')
 ]
 

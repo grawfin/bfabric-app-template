@@ -1,14 +1,14 @@
 from dash import Input, Output, State, html, dcc
 import dash_bootstrap_components as dbc
 import dash
+import json
 # import bfabric
 from utils import auth_utils, components
 
 ####### Main components of a Dash App: ########
 # 1) app (dash.Dash())
-# 2) server (app.server)
-# 3) app.layout (html.Div())
-# 4) app.callback()
+# 2) app.layout (html.Div())
+# 3) app.callback()
 
 #################### (1) app ####################
 app = dash.Dash(
@@ -19,11 +19,7 @@ app = dash.Dash(
     ],
 )
 
-
-#################### (2) server ####################
-server = app.server
-
-#################### (3) app.layout ####################
+#################### (2) app.layout ####################
 
 app.layout = html.Div(
     children=[
@@ -73,7 +69,7 @@ app.layout = html.Div(
                         dbc.Col(
                             html.Div(
                                 id="page-content",
-                                children=components.no_auth + [html.Div(id="auth-div")],style={"margin-top":"20vh", "margin-left":"20vw", "font-size":"20px"},
+                                children=components.no_auth + [html.Div(id="auth-div")],style={"margin-top":"20vh", "margin-left":"2vw", "font-size":"20px"},
                             ),
                             width=9,
                         ),
@@ -83,15 +79,19 @@ app.layout = html.Div(
             ], style={"width":"100vw"},  
             fluid=True
         ),
-        dcc.Store(id='token', storage_type='session'),
+        dcc.Store(id='token', storage_type='session'), # Where we store the actual token
+        dcc.Store(id='entity', storage_type='session'), # Where we store the entity data retrieved from bfabric
+        dcc.Store(id='token_data', storage_type='session'), # Where we store the token auth response
     ],style={"width":"100vw", "overflow-x":"hidden", "overflow-y":"scroll"}
 )
 
 
-#################### (4) app.callback ####################
+#################### (3) app.callback ####################
 @app.callback(
     [
         Output('token', 'data'),
+        Output('token_data', 'data'),
+        Output('entity', 'data'),
         Output('page-content', 'children'),
         Output('page-title', 'children'),
         Output('sidebar_text', 'hidden'),
@@ -109,22 +109,34 @@ def display_page(url_params):
     base_title = "Bfabric App Template"
 
     if not url_params:
-        return None, components.no_auth, base_title, True, True, True, True, True
+        return None, None, None, components.no_auth, base_title, True, True, True, True, True
     
     token = "".join(url_params.split('token=')[1:])
-    tdata = auth_utils.token_to_data(token)
-    entity_data = auth_utils.entity_data(tdata)
-    print("ENTITY DATA: ", entity_data)
-    page_title = f"{base_title} - {tdata['entityClass_data']} - {tdata['entity_id_data']}" if tdata else "Bfabric App Interface"
-        
-    if not tdata:
-        return token, components.no_auth, page_title, True, True, True, True, True
+    tdata_raw = auth_utils.token_to_data(token)
     
-    elif not entity_data:
-        return token, components.no_entity, page_title, True, True, True, True, True
-    
+    if tdata_raw:
+        if tdata_raw == "EXPIRED":
+            return None, None, None, components.expired, base_title, True, True, True, True, True
+
+        else: 
+            tdata = json.loads(tdata_raw)
     else:
-        return token, components.auth, page_title, False, False, False, False, False
+        return None, None, None, components.no_auth, base_title, True, True, True, True, True
+    
+    if tdata:
+        entity_data = json.loads(auth_utils.entity_data(tdata))
+        page_title = f"{base_title} - {tdata['entityClass_data']} - {tdata['entity_id_data']} ({tdata['environment']} System)" if tdata else "Bfabric App Interface"
+
+        if not tdata:
+            return token, None, None, components.no_auth, page_title, True, True, True, True, True
+        
+        elif not entity_data:
+            return token, None, None, components.no_entity, page_title, True, True, True, True, True
+        
+        else:
+            return token, tdata, entity_data, components.auth, page_title, False, False, False, False, False
+    else: 
+        return None, None, None, components.no_auth, base_title, True, True, True, True, True
     
 @app.callback(
     Output('auth-div', 'children'),
@@ -135,26 +147,23 @@ def display_page(url_params):
         Input('example-button', 'n_clicks')
     ],
     [
-        State('token', 'data')
+        State('entity', 'data'),
+        State('token_data', 'data'),
     ]
 )
-def update_auth_div(slider_val, dropdown_val, input_val, n_clicks, token):
-    
-    token_data = auth_utils.token_to_data(token)
-    entity_data = auth_utils.entity_data(token_data)
+def update_auth_div(slider_val, dropdown_val, input_val, n_clicks, entity_data, token_data):
 
-    if not entity_data:
-        entity_details = []
+    if not entity_data or not token_data:
+        return None
 
-    else:
-        entity_details = [
-            html.H1("Entity Data:  "),
-            html.P(f"Entity Class: {token_data['entityClass_data']}"),
-            html.P(f"Entity ID: {token_data['entity_id_data']}"),
-            html.P(f"Created By: {entity_data.createdby}"),
-            html.P(f"Created: {entity_data.created}"),
-            html.P(f"Modified: {entity_data.modified}"),
-        ]
+    entity_details = [
+        html.H1(f"Entity Data:  "),
+        html.P(f"Entity Class: {token_data['entityClass_data']}"),
+        html.P(f"Entity ID: {token_data['entity_id_data']}"),
+        html.P(f"Created By: {entity_data['createdby']}"),
+        html.P(f"Created: {entity_data['created']}"),
+        html.P(f"Modified: {entity_data['modified']}"),
+    ]
 
     output = dbc.Row(
         [
