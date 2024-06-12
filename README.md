@@ -22,10 +22,17 @@ cd ..
 ```
 
 4) Set up virtual environment and install dependencies:
+
+For installing with pip: 
 ``` 
 python3 -m venv venv
 source venv/bin/activate
 pip3 install -r requirements.txt
+```
+
+For installing with conda: 
+```
+conda env create -f conda_env.yml
 ```
 
 5) Run the application 
