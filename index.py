@@ -8,13 +8,15 @@ from utils import auth_utils, components
 
 if os.path.exists("./PARAMS.py"):
     try:
-        from PARAMS import PORT, HOST
+        from PARAMS import PORT, HOST, DEV
     except:
         PORT = 8050
         HOST = 'localhost'
+        DEV = True
 else:
     PORT = 8050
     HOST = 'localhost'
+    DEV = True
     
 
 ####### Main components of a Dash App: ########
@@ -146,7 +148,10 @@ def display_page(url_params):
             return token, None, None, components.no_entity, page_title, True, True, True, True, True
         
         else:
-            return token, tdata, entity_data, components.auth, page_title, False, False, False, False, False
+            if not DEV:
+                return token, tdata, entity_data, components.auth, page_title, False, False, False, False, False
+            else: 
+                return token, tdata, entity_data, components.dev, page_title, True, True, True, True, True
     else: 
         return None, None, None, components.no_auth, base_title, True, True, True, True, True
     
@@ -198,4 +203,4 @@ def update_auth_div(slider_val, dropdown_val, input_val, n_clicks, entity_data, 
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True, port=PORT, host=HOST)
+    app.run_server(debug=False, port=PORT, host=HOST)
