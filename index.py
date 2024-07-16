@@ -2,8 +2,20 @@ from dash import Input, Output, State, html, dcc
 import dash_bootstrap_components as dbc
 import dash
 import json
+import os
 # import bfabric
 from utils import auth_utils, components
+
+if os.path.exists("./PARAMS.py"):
+    try:
+        from PARAMS import PORT, HOST
+    except:
+        PORT = 8050
+        HOST = 'localhost'
+else:
+    PORT = 8050
+    HOST = 'localhost'
+    
 
 ####### Main components of a Dash App: ########
 # 1) app (dash.Dash())
@@ -186,4 +198,4 @@ def update_auth_div(slider_val, dropdown_val, input_val, n_clicks, entity_data, 
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True, port=8050, host='localhost')
+    app.run_server(debug=True, port=PORT, host=HOST)
